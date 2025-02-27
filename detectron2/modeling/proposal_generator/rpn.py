@@ -200,7 +200,7 @@ class RPN(nn.Module):
         min_box_size: float = 0.0,
         anchor_boundary_thresh: float = -1.0,
         loss_weight: Union[float, Dict[str, float]] = 1.0,
-        box_reg_loss_type: str = "smooth_l1",
+        box_reg_loss_type: str = "smooth_l1", 
         smooth_l1_beta: float = 0.0,
     ):
         """
