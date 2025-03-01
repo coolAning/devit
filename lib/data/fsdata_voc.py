@@ -7,7 +7,7 @@ from detectron2.structures import BoxMode
 from detectron2.utils.file_io import PathManager
 
 
-DATASET_ROOT = os.environ.get("DETECTRON2_DATASETS", "datasets")
+DATASET_ROOT = os.environ.get("DETECTRON2_DATASETS", "/mnt/d/datasets/VOC")
 
 
 def load_filtered_voc_instances(
@@ -400,10 +400,84 @@ def register_all_pascal_voc(root="datasets"):
         )
         MetadataCatalog.get(name).evaluator_type = "pascal_voc"
         
+    
+        
 register_all_pascal_voc(root=os.environ.get("DETECTRON2_DATASETS", "datasets"))
     # D1 = DatasetCatalog.get('pascal_voc_train_split_1')
     # D2 = DatasetCatalog.get('pascal_voc_train_split_2')
     # D3 = DatasetCatalog.get('pascal_voc_train_split_3')
+# 在fsdata_voc.py文件末尾添加
+
+
+def register_mini_balanced_test_sets():
+    """注册平衡的小型测试集，每个类别选取相同数量的图像"""
+    
+    for sid in range(1, 4):
+        full_name = f"voc_2007_test_all{sid}"
+        mini_name = f"voc_2007_test_balanced{sid}"
+        
+        # 获取完整测试集
+        full_dataset = DatasetCatalog.get(full_name)
+        
+        # 获取类别列表
+        meta = MetadataCatalog.get(full_name)
+        all_classes = meta.thing_classes
+        base_classes = meta.base_classes
+        novel_classes = meta.novel_classes
+        
+        # 图像按类别分类
+        images_by_class = {cls: [] for cls in all_classes}
+        
+        # 统计每张图像中包含的类别
+        for item in full_dataset:
+            image_classes = set()
+            for anno in item["annotations"]:
+                cls_id = anno["category_id"]
+                cls_name = all_classes[cls_id]
+                image_classes.add(cls_name)
+            
+            # 将图像添加到对应类别的列表中
+            for cls in image_classes:
+                images_by_class[cls].append(item)
+        
+        # 每个类选取最多10张图像
+        images_per_class = 10
+        selected_images = {}
+        
+        for cls, images in images_by_class.items():
+            import random
+            random.seed(42 + all_classes.index(cls))  # 每个类使用不同种子确保多样性
+            
+            # 如果图像不足，全部使用
+            if len(images) <= images_per_class:
+                selected = images
+            else:
+                selected = random.sample(images, images_per_class)
+            
+            for img in selected:
+                img_id = img["image_id"]
+                selected_images[img_id] = img
+        
+        # 将字典转为列表
+        mini_dataset = list(selected_images.values())
+        print(f"创建平衡测试集 {mini_name}: {len(mini_dataset)}张图像")
+        
+        # 注册小型测试集
+        DatasetCatalog.register(mini_name, lambda d=mini_dataset: d)
+        
+        # 复制元数据
+        MetadataCatalog.get(mini_name).set(
+            thing_classes=all_classes,
+            dirname=meta.dirname,
+            year=meta.year,
+            split="test",
+            base_classes=base_classes,
+            novel_classes=novel_classes,
+            evaluator_type="pascal_voc"
+        )
+
+# 执行注册
+register_mini_balanced_test_sets()
 
 if __name__ == "__main__":
     from lib.categories import ALL_CLS_DICT
