@@ -1,6 +1,7 @@
 _BASE_: "../../Base-RCNN-C4.yaml"
 DE:
-  CLASS_PROTOTYPES: "weights/initial/few-shot-voc/prototypes/pascal_voc_train_split_1.vits14.clip.bbox.p10.sk.pkl,weights/initial/few-shot-voc/prototypes/voc_2007_trainval_novel1_10shot.vits14.clip.aug.bbox.p10.sk.pkl"  BG_PROTOTYPES: "weights/initial/background/background_prototypes.vits14.pth"
+  CLASS_PROTOTYPES: "weights/initial/few-shot-voc/prototypes/pascal_voc_train_split_1.vits14.clip.bbox.p10.sk.pkl,weights/initial/few-shot-voc/prototypes/voc_2007_trainval_novel1_10shot.vits14.clip.aug.bbox.p10.sk.pkl"
+  BG_PROTOTYPES: "weights/initial/background/background_prototypes.vits14.pth"
   BG_CLS_LOSS_WEIGHT: 0.2
   TOPK: 10
 

@@ -17,6 +17,7 @@ from detectron2.data.detection_utils import convert_image_to_rgb
 from detectron2.structures import ImageList, Instances, Boxes
 from detectron2.utils.events import get_event_storage
 from detectron2.utils.logger import log_first_n
+from lib.semantic_attention import SemanticAttention
 
 from ..backbone import Backbone, build_backbone
 from ..postprocessing import detector_postprocess
@@ -698,6 +699,10 @@ class OpenSetDetectorWithExamples(nn.Module):
             if self.only_train_mask:
                 self.turn_off_box_training(force=True)
                 self.turn_off_cls_training(force=True)
+                
+                # 在初始化的最后添加：
+        embed_size = self.train_class_weight.shape[-1]  # 获取嵌入维度
+        self.semantic_attention = SemanticAttention(embed_size, embed_size)
             
     
     def turn_off_cls_training(self, force=False):
@@ -1126,7 +1131,11 @@ class OpenSetDetectorWithExamples(nn.Module):
             roi_features = roi_features.flatten(2) 
             bs, spatial_size = roi_features.shape[0], roi_features.shape[-1]
             # (N x spatial x emb) @ (emb x class) = N x spatial x class
-            feats = roi_features.transpose(-2, -1) @ class_weights.T
+            # feats = roi_features.transpose(-2, -1) @ class_weights.T
+            # 改进后的代码
+            
+            semantic_enhanced_features = self.semantic_attention(roi_features, class_weights)
+            feats = semantic_enhanced_features.transpose(-2, -1) @ class_weights.T
 
             # sample topk classes
             class_topk = self.num_sample_class

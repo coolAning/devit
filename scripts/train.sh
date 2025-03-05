@@ -36,7 +36,7 @@ case $task in
             OUTPUT_DIR output/train/few-shot/shot-${shot}/vit${vit}/  $@
     else
         python3 tools/train_net.py --num-gpus $num_gpus  \
-            --config-file configs/few-shot-voc/${shot}shot/vit${vit}_${split}s.yaml  \
+            --config-file configs/few-shot-voc/${shot}shot/vit${vit}_${split}s_clip.yaml  \
             MODEL.WEIGHTS  weights/initial/few-shot-voc/voc${split}/${vit}+rpn.pth \
             DE.OFFLINE_RPN_CONFIG configs/VOC_RPN/faster_rcnn_R_50_C4.few_shot_s1.yaml \
             OUTPUT_DIR output/train/few-shot-voc/${shot}shot/${split}/vit${vit}/  $@
