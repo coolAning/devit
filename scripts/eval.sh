@@ -1,9 +1,12 @@
+export DETECTRON2_DATASETS=/gly/yury/djn/project/datasets/VOC
+export PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128,garbage_collection_threshold:0.8
+
 task="${task:-ovd}" # ovd, fsod, osod
 vit="${vit:-l}" # s, b, l
 dataset="${dataset:-coco}" # coco, lvis
 shot="${shot:-10}"
 split="${split:-1}"
-num_gpus="${num_gpus:-`nvidia-smi -L | wc -l`}"
+num_gpus=8
 
 echo "task=$task, vit=$vit, dataset=$dataset, shot=$shot, split=$split, num_gpus=$num_gpus"
 
@@ -35,9 +38,11 @@ case $task in
             DE.OFFLINE_RPN_CONFIG configs/RPN/mask_rcnn_R_50_C4_1x_ovd_FSD.yaml \
             OUTPUT_DIR output/eval/few-shot/shot-${shot}/vit${vit}/  $@
     else
-        python3 tools/train_net.py --num-gpus $num_gpus --eval-only \
-            --config-file configs/few-shot-voc/${shot}shot/vit${vit}_${split}s.yaml  \
-            MODEL.WEIGHTS `ls weights/trained/few-shot-voc/${split}/vit${vit}_*.pth | head -n 1`  \
+        python3 tools/train_net.py   --eval-only \
+            --config-file configs/few-shot-voc/${shot}shot/vit${vit}_${split}s.yaml \
+            MODEL.DEVICE cpu \
+            DATALOADER.NUM_WORKERS 4 \
+            MODEL.WEIGHTS $(ls output/train/few-shot-voc/${shot}shot/${split}/vits/model_final.pth) \
             DE.OFFLINE_RPN_CONFIG configs/VOC_RPN/faster_rcnn_R_50_C4.few_shot_s1.yaml \
             OUTPUT_DIR output/eval/few-shot-voc/${shot}shot/${split}/vit${vit}/  $@
     fi

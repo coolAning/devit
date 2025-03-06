@@ -63,7 +63,7 @@ from detectron2.data.datasets.coco_zeroshot_categories import COCO_SEEN_CLS, \
     
 from sklearn.metrics import precision_recall_curve
 from sklearn import metrics as sk_metrics
-
+import torch, os
 
 
 class Trainer(DefaultTrainer):

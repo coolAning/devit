@@ -412,7 +412,7 @@ register_all_pascal_voc(root=os.environ.get("DETECTRON2_DATASETS", "datasets"))
 def register_mini_balanced_test_sets():
     """注册平衡的小型测试集，每个类别选取相同数量的图像"""
     
-    for sid in range(1, 4):
+    for sid in range(1, 2):
         full_name = f"voc_2007_test_all{sid}"
         mini_name = f"voc_2007_test_balanced{sid}"
         

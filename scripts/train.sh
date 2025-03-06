@@ -1,11 +1,16 @@
+export DETECTRON2_DATASETS=/gly/yury/djn/project/datasets/VOC
+export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+
 task="${task:-ovd}" # ovd, fsod, osod
 vit="${vit:-l}" # s, b, l
 dataset="${dataset:-coco}" # coco, lvis
 shot="${shot:-10}"
 split="${split:-1}"
-num_gpus="${num_gpus:-`nvidia-smi -L | wc -l`}"
-
+# num_gpus="${num_gpus:-`nvidia-smi -L | wc -l`}"
+num_gpus="${num_gpus:-`echo ${CUDA_VISIBLE_DEVICES} | tr ',' '\n' | wc -l`}"
 echo "task=$task, vit=$vit, dataset=$dataset, shot=$shot, split=$split, num_gpus=$num_gpus"
+
+
 
 case $task in
 
@@ -36,7 +41,7 @@ case $task in
             OUTPUT_DIR output/train/few-shot/shot-${shot}/vit${vit}/  $@
     else
         python3 tools/train_net.py --num-gpus $num_gpus  \
-            --config-file configs/few-shot-voc/${shot}shot/vit${vit}_${split}s_clip.yaml  \
+            --config-file configs/few-shot-voc/${shot}shot/vit${vit}_${split}s.yaml  \
             MODEL.WEIGHTS  weights/initial/few-shot-voc/voc${split}/${vit}+rpn.pth \
             DE.OFFLINE_RPN_CONFIG configs/VOC_RPN/faster_rcnn_R_50_C4.few_shot_s1.yaml \
             OUTPUT_DIR output/train/few-shot-voc/${shot}shot/${split}/vit${vit}/  $@

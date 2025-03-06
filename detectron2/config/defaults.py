@@ -175,7 +175,7 @@ _C.DATASETS.MAX_SEQ_LENGTH = 35
 # -----------------------------------------------------------------------------
 _C.DATALOADER = CN()
 # Number of data loading threads
-_C.DATALOADER.NUM_WORKERS = 4
+_C.DATALOADER.NUM_WORKERS = 0
 # If True, each batch should contain only images for which the aspect ratio
 # is compatible. This groups portrait images together, and landscape images
 # are not batched with portrait images.
