@@ -419,7 +419,7 @@ class OpenSetDetectorWithExamples(nn.Module):
                 all_cids = [],
                 mask_cids = [],
                 T_length=128,
-                
+                use_semantic_attention=False,  # 新增参数 控制是否启用自注意力机制
                 bg_cls_weight=0.2,
                 batch_size_per_image=128,
                 pos_ratio=0.25,
@@ -701,8 +701,10 @@ class OpenSetDetectorWithExamples(nn.Module):
                 self.turn_off_cls_training(force=True)
                 
                 # 在初始化的最后添加：
-        embed_size = self.train_class_weight.shape[-1]  # 获取嵌入维度
-        self.semantic_attention = SemanticAttention(embed_size, embed_size)
+        self.use_semantic_attention = use_semantic_attention
+        if use_semantic_attention:
+            embed_size = self.train_class_weight.shape[-1]  # 获取嵌入维度
+            self.semantic_attention = SemanticAttention(embed_size, embed_size)
             
     
     def turn_off_cls_training(self, force=False):
@@ -827,7 +829,10 @@ class OpenSetDetectorWithExamples(nn.Module):
             "only_train_mask": cfg.DE.ONLY_TRAIN_MASK,
             "use_mask": cfg.MODEL.MASK_ON,
             
-            "vit_feat_name": vit_feat_name
+            "vit_feat_name": vit_feat_name,
+            
+            "use_semantic_attention": cfg.DE.USE_SEMANTIC_ATTENTION,
+
         }
     
     def prepare_noisy_boxes(self, gt_boxes, image_shape):
@@ -1134,8 +1139,11 @@ class OpenSetDetectorWithExamples(nn.Module):
             # feats = roi_features.transpose(-2, -1) @ class_weights.T
             # 改进后的代码
             
-            semantic_enhanced_features = self.semantic_attention(roi_features, class_weights)
-            feats = semantic_enhanced_features.transpose(-2, -1) @ class_weights.T
+            if self.use_semantic_attention:
+                semantic_enhanced_features = self.semantic_attention(roi_features, class_weights)
+                feats = semantic_enhanced_features.transpose(-2, -1) @ class_weights.T
+            else:
+                feats = roi_features.transpose(-2, -1) @ class_weights.T
 
             # sample topk classes
             class_topk = self.num_sample_class
